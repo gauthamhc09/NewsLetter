@@ -1,13 +1,11 @@
+import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import classes from './new-comment.module.css';
 
 function NewComment(props) {
   const [isInvalid, setIsInvalid] = useState(false);
 
-  const emailInputRef = useRef();
-  const nameInputRef = useRef();
-  const commentInputRef = useRef();
-
+  const { commentInputRef, nameInputRef, emailInputRef } = props
   function sendCommentHandler(event) {
     event.preventDefault();
 
@@ -27,7 +25,6 @@ function NewComment(props) {
       setIsInvalid(true);
       return;
     }
-
     props.onAddComment({
       email: enteredEmail,
       name: enteredName,
@@ -36,7 +33,7 @@ function NewComment(props) {
   }
 
   return (
-    <form className={classes.form}>
+    <form className={classes.form} onSubmit={sendCommentHandler}>
       <div className={classes.row}>
         <div className={classes.control}>
           <label htmlFor='email'>Your email</label>
@@ -52,7 +49,7 @@ function NewComment(props) {
         <textarea id='comment' rows='5' ref={commentInputRef}></textarea>
       </div>
       {isInvalid && <p>Please enter a valid email address and comment!</p>}
-      <button>Submit</button>
+      <button style={{ backgroundColor: '#dcfff9' }}>Submit</button>
     </form>
   );
 }

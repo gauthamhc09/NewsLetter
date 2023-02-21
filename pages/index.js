@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { getFeaturedEvents } from '../helpers/api-util';
 import EventList from '../components/events/event-list';
 import NewsletterRegistration from '../components/input/newsletter-registration';
+import { useEffect } from 'react';
 
 function HomePage(props) {
   return (
