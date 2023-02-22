@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, CSSProperties } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import ClipLoader from "react-spinners/ClipLoader";
 
+import { NotificationContext } from '../../store/notification-context';
 import CommentList from './comment-list';
-import NewComment from './new-comment';
 import classes from './comments.module.css';
+import NewComment from './new-comment';
 
 const override = {
   display: "block",
@@ -18,9 +19,8 @@ function Comments(props) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   let [color, setColor] = useState("#ffffff");
-  const emailInputRef = useRef();
-  const nameInputRef = useRef();
-  const commentInputRef = useRef();
+
+  const notificationCtx = useContext(NotificationContext);
 
   function toggleCommentsHandler() {
     setShowComments((prevStatus) => !prevStatus);
@@ -29,6 +29,11 @@ function Comments(props) {
   function addCommentHandler(commentData) {
     // send data to API
     // debugger;
+    notificationCtx.showNotification({
+      title: 'Posting...',
+      message: 'Adding your comments.',
+      status: 'pending',
+    });
     fetch(`/api/comments/${eventId}`, {
       method: 'POST',
       body: JSON.stringify(commentData),
@@ -36,14 +41,31 @@ function Comments(props) {
         'Content-Type': 'application/json'
       }
     })
-      .then(response => response.json())
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+
+        return response.json().then((data) => {
+          throw new Error(data.message || 'Something went wrong!');
+        });
+      })
       .then((data) => {
-        console.log(data),
-          emailInputRef.current.value = ""
-        nameInputRef.current.value = ""
-        commentInputRef.current.value = ""
+        console.log(data);
+        notificationCtx.showNotification({
+          title: 'Success!',
+          message: 'Successfully posted the comment!',
+          status: 'success',
+        });
       }
-      );
+      )
+      .catch((error) => {
+        notificationCtx.showNotification({
+          title: 'Error!',
+          message: error.message || 'Something went wrong!',
+          status: 'error',
+        });
+      });
   }
   useEffect(() => {
     if (showComments) {
@@ -63,7 +85,7 @@ function Comments(props) {
         <button onClick={toggleCommentsHandler}>
           {showComments ? 'Hide' : 'Show'} Comments
         </button>
-        {showComments && <NewComment onAddComment={addCommentHandler} emailInputRef={emailInputRef} nameInputRef={nameInputRef} commentInputRef={commentInputRef} />}
+        {showComments && <NewComment onAddComment={addCommentHandler} />}
         {showComments && loading && <ClipLoader
           color={color}
           loading={loading}
